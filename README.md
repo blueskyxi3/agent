@@ -170,9 +170,14 @@ docker push ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-
 
 ### POC 现有 Deployment 升级（external 模式）
 
-POC 已有 `compute-power-zone/ai-hub-agent` Deployment，容器名为 `agent`，现有 Service 为 `ai-hub-agent-svc:3100`。当前副本数为 0；确认采用此 external 接入方式后，使用现有 PVC 和配对密钥升级并启动：
+POC 已有 `compute-power-zone/ai-hub-agent` Deployment，容器名为 `agent`，现有 Service 为 `ai-hub-agent-svc:3100`。当前副本数为 0，且尚未配置 SDK v2 配对密钥。首次采用此 external 接入方式时，先生成并保存密钥，再创建 Secret；后续升级复用该 Secret：
 
 ```bash
+export AGENT_HOST_SECRET="$(openssl rand -hex 32)"
+kubectl -n compute-power-zone create secret generic ai-hub-agent-pairing \
+  --from-literal=AGENT_HOST_SECRET="$AGENT_HOST_SECRET"
+kubectl -n compute-power-zone set env deployment/ai-hub-agent \
+  --from=secret/ai-hub-agent-pairing
 kubectl -n compute-power-zone patch deployment ai-hub-agent --type merge \
   -p '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
 kubectl -n compute-power-zone set image deployment/ai-hub-agent \
@@ -181,7 +186,7 @@ kubectl -n compute-power-zone scale deployment/ai-hub-agent --replicas=1
 kubectl -n compute-power-zone rollout status deployment/ai-hub-agent --timeout=180s
 ```
 
-在 AI Hub 更新 Release 附件 `catalog.json` 对应的目录项，以 `external` 模式接入 `http://ai-hub-agent-svc.compute-power-zone.svc:3100`，配对密钥沿用该 Deployment 的 `AGENT_HOST_SECRET`。数据库和数据卷保持原配置。`Recreate` 可避免 SQLite 在升级期间由新旧两个 Pod 同时写入。
+在 AI Hub 更新 Release 附件 `catalog.json` 对应的目录项，以 `external` 模式接入 `http://ai-hub-agent-svc.compute-power-zone.svc:3100`，配对密钥填写刚生成的 `$AGENT_HOST_SECRET` 值（也就是 Secret 中的同一个值）。数据库和数据卷保持原配置。`Recreate` 可避免 SQLite 在升级期间由新旧两个 Pod 同时写入。
 
 若使用市场托管的 `kubernetes` 模式，按上文安装步骤由 plugin-deployer 创建工作负载；现有手工 Deployment 使用上述 `external` 接入方式。选择其中一种部署方式管理同一个插件。
 

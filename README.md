@@ -58,6 +58,15 @@ gh workflow run agent-release.yml --repo blueskyxi3/agent --ref 1.0.0 -f version
 
 master 会直接从 GitHub 下载 ZIP。下载或安装包校验失败会报错，不会改取本地文件。
 
+## Docker 模式安装
+
+1. 更新 AI Hub 宿主并重启。新版宿主的 embedded 部署器在未设置 `plugin_deployer.backend` 时自动检测本机 Docker Engine，包括 Docker Desktop 的 Unix socket；显式 `backend: ""` 会关闭自动检测。也可在宿主配置 `plugin_deployer.backend: docker`，通过 `plugin_deployer.docker.host` 指定 socket，然后重启宿主。
+2. 在“系统设置 → 扩展管理”更新已有 Agent 目录项，使用本仓库 `catalog.example.json` 或 Release 的 `catalog.json`，确认 `modes` 包含 `docker`。目录不会随源码或 Release 附件自动更新。
+3. 在“插件市场 → 智能助手”选择 `docker`，填写支持 Docker Engine 架构的 Agent 镜像、端口 `3100`、健康路径 `/api/v1/health`，数据库选择**独立 SQLite**。POC 已发布的 `ai-hub-agent:1.0.0` 镜像为 `linux/amd64`；Apple Silicon 的 Docker Engine 为 `linux/arm64`，应使用相应架构的镜像。
+4. 宿主回调地址填写容器可访问的 AI Hub origin：Docker Desktop 本机开发通常为 `http://host.docker.internal:3000`；宿主与插件同属 Docker 网络时使用宿主容器的服务名。确认后由部署器拉取镜像、生成配对密钥并创建容器和数据卷，状态应变为 `active`。
+
+Docker 模式不下载 process ZIP，使用 `/data/plugin` 数据卷保存独立 SQLite。停用或卸载通过插件市场执行，卸载保留数据卷。Kubernetes 选项仍需要部署器显式启用 Kubernetes 后端并具备集群访问权限。
+
 ## Kubernetes 模式安装
 
 1. 将本目录的 `catalog.json`（或 `catalog.example.json`）登记到插件目录，确认 `modes` 包含 `kubernetes`。已登记的目录不会随源码自动更新。

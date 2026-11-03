@@ -1,0 +1,97 @@
+name: Agent Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Agent version (for example 1.0.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux-amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux-arm64
+          - runner: macos-14
+            platform: darwin-arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate version
+        run: |
+          python3 - <<'PY'
+          import os, re
+          if not re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", os.environ["VERSION"]):
+              raise SystemExit("version must be a release version such as 1.0.0")
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: npm ci
+      - run: make package
+      - name: Verify native package lifecycle
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          AGENT_TEST_PACKAGE="$PWD/dist/agent-$VERSION-$PLATFORM.zip" make test-package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-${{ matrix.platform }}
+          path: dist/agent-${{ inputs.version }}-${{ matrix.platform }}.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: agent-*
+          path: dist
+          merge-multiple: true
+      - name: Publish packages and GitHub API catalog
+        run: |
+          tag="agent-v$VERSION"
+          gh release create "$tag" dist/agent-*.zip --draft --target "$GITHUB_SHA" \
+            --title "Agent $VERSION" --notes "SDK v2 Agent process packages and marketplace catalog."
+          release_id=$(gh release view "$tag" --json databaseId --jq .databaseId)
+          gh api "repos/$GH_REPO/releases/$release_id" > "$RUNNER_TEMP/agent-release.json"
+          python3 - <<'PY'
+          import json, os, pathlib
+          version = os.environ["VERSION"]
+          release = json.loads((pathlib.Path(os.environ["RUNNER_TEMP"]) / "agent-release.json").read_text())
+          assets = {asset["name"]: asset["url"] for asset in release["assets"]}
+          catalog = json.loads(pathlib.Path("catalog.example.json").read_text())
+          catalog["manifest"]["version"] = version
+          catalog["artifacts"] = {
+              platform: assets[f"agent-{version}-{platform}.zip"]
+              for platform in catalog["artifacts"]
+          }
+          pathlib.Path("dist/catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n")
+          PY
+          gh release upload "$tag" dist/catalog.json
+          gh release edit "$tag" --draft=false --latest=false

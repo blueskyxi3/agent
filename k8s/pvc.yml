@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    meta.helm.sh/release-name: ai-hub
+    meta.helm.sh/release-namespace: compute-power-zone
+  labels:
+    app.kubernetes.io/component: agent
+    app.kubernetes.io/instance: ai-hub
+  name: ai-hub-agent-data
+  namespace: compute-power-zone
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ebs-ssd
+  volumeMode: Filesystem
+

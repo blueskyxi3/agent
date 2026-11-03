@@ -1,0 +1,11 @@
+plugin:
+  id: agent
+server:
+  address: 127.0.0.1:3100
+host:
+  base_url: http://127.0.0.1:3000
+  secret: ""
+database:
+  mode: independent
+  driver: sqlite
+  sqlite_path: ./data/agent/agent.sqlite

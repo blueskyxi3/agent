@@ -1,0 +1,19 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      AIHUB_INTERNAL_URL: http://ai-hub:3000
+      AGENT_HOST_SECRET: ${AGENT_HOST_SECRET:?set AGENT_HOST_SECRET}
+      AGENT_DATA_DIR: /data/agent
+      AGENT_SQLITE_PATH: /data/agent/agent.sqlite
+      AGENT_MODEL_IMAGE_INPUT: "true"
+    volumes:
+      - agent-data:/data/agent
+    expose:
+      - "3100"
+
+volumes:
+  agent-data:

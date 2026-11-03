@@ -1,0 +1,9 @@
+{
+  "id": "agent",
+  "name": "智能助手",
+  "version": "1.0.0",
+  "sdk_version": 2,
+  "extensions": ["site.global.layer"],
+  "entry": "/assets/plugin.js",
+  "backend": "agent"
+}

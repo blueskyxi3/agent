@@ -1,0 +1,7 @@
+node_modules/
+**/dist/
+.env
+data/
+.gitnexus/
+__pycache__/
+*.pyc

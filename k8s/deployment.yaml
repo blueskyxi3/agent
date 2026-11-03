@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-hub-agent
+  namespace: compute-power-zone
+  labels:
+    app.kubernetes.io/name: ai-hub-agent
+spec:
+  selector:
+    app.kubernetes.io/name: ai-hub-agent
+  ports:
+    - name: http
+      port: 3100
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-hub-agent
+  namespace: compute-power-zone
+  labels:
+    app.kubernetes.io/name: ai-hub-agent
+spec:
+  # Agent 使用本地 SQLite 保存会话；未改为共享存储前必须保持单副本。
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ai-hub-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ai-hub-agent
+    spec:
+      containers:
+        - name: agent
+          image: ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3100
+          env:
+            - name: AIHUB_INTERNAL_URL
+              # 改为 master Service 在当前 namespace 中的实际 DNS 名称及端口。
+              value: http://ai-hub:3000
+            - name: AGENT_HOST_SECRET
+              value: "your-plugin-pairing-secret-with-32-characters" # 必须与插件登记的配对密钥一致。
+          volumeMounts:
+            - name: agent-data
+              mountPath: /data/agent
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: agent-data
+          persistentVolumeClaim:
+            # 预先创建一个 ReadWriteOnce PVC；名称可按集群规范替换。
+            claimName: ai-hub-agent-data

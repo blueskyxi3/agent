@@ -1,5 +1,6 @@
 """Verify a native process archive without an AI Hub checkout or system Node."""
 
+import hashlib
 import json
 import os
 import pathlib
@@ -23,6 +24,14 @@ with tempfile.TemporaryDirectory(prefix="agent-package-test-") as temporary:
         manifest = json.loads(archive.read("plugin.json"))
         executable.write_bytes(archive.read("agent"))
     executable.chmod(0o700)
+    runtime_key = hashlib.sha256(executable.read_bytes()).hexdigest()
+    with zipfile.ZipFile(executable) as embedded:
+        expected_assets = {name: embedded.read("runtime/apps/web/dist/" + name)
+                           for name in ["assistant-embed.js", "assistant.css"]}
+    # Reproduce a complete runtime left by an older package with the same version.
+    stale_runtime = root / "runtime" / manifest["version"]
+    stale_runtime.mkdir(parents=True)
+    (stale_runtime / ".complete").write_text(manifest["version"])
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -58,7 +67,10 @@ with tempfile.TemporaryDirectory(prefix="agent-package-test-") as temporary:
             assert installed == manifest
             with urllib.request.urlopen(base_url + "/assets/plugin.js", timeout=3) as response:
                 assert response.status == 200 and response.read()
-            marker = root / "runtime" / manifest["version"] / ".complete"
+            for name, expected in expected_assets.items():
+                with urllib.request.urlopen(base_url + "/assets/" + name, timeout=3) as response:
+                    assert response.read() == expected, f"stale runtime asset: {name}"
+            marker = root / "runtime" / manifest["version"] / runtime_key / ".complete"
             assert marker.read_text() == manifest["version"]
         finally:
             process.terminate()

@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
         - name: agent
-          image: ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0
+          image: ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.1.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

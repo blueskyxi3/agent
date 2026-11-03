@@ -2,7 +2,7 @@
   "manifest": {
     "id": "agent",
     "name": "智能助手",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "sdk_version": 2,
     "extensions": ["site.global.layer"],
     "entry": "/assets/plugin.js",
@@ -13,9 +13,9 @@
   "background": "https://raw.githubusercontent.com/blueskyxi3/agent/main/plugin-backgrounds/agent.png",
   "modes": ["process", "external", "docker", "kubernetes"],
   "artifacts": {
-    "darwin-arm64": "https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-darwin-arm64.zip",
-    "linux-amd64": "https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-linux-amd64.zip",
-    "linux-arm64": "https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-linux-arm64.zip"
+    "darwin-arm64": "https://github.com/blueskyxi3/agent/releases/download/1.1.1/agent-1.1.1-darwin-arm64.zip",
+    "linux-amd64": "https://github.com/blueskyxi3/agent/releases/download/1.1.1/agent-1.1.1-linux-amd64.zip",
+    "linux-arm64": "https://github.com/blueskyxi3/agent/releases/download/1.1.1/agent-1.1.1-linux-arm64.zip"
   },
   "trial_days": 7,
   "purchase_days": 0,

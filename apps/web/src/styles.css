@@ -1975,7 +1975,7 @@
   grid-column: 3;
   justify-self: end;
   color: var(--aih-muted);
-  font-size: 11px;
+  font-size: 9px;
 }
 .aih-disclaimer {
   grid-column: 2;

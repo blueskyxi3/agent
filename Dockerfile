@@ -13,7 +13,11 @@ RUN npm prune --omit=dev
 
 FROM node:22-bookworm-slim AS runtime
 
+ARG VERSION=1.1.1
+LABEL org.opencontainers.image.version=${VERSION}
+
 ENV NODE_ENV=production \
+    AGENT_PLUGIN_VERSION=${VERSION} \
     AGENT_HOST=0.0.0.0 \
     AGENT_PORT=3100 \
     AGENT_DATA_DIR=/data/agent \

@@ -6,7 +6,7 @@ import { loadConfig } from "./config.js";
 
 test("loads safe defaults", () => {
   const config = loadConfig({} as NodeJS.ProcessEnv);
-  assert.equal(config.pluginVersion, "1.0.0");
+  assert.equal(config.pluginVersion, "1.1.1");
   assert.equal(config.port, 3100);
   assert.equal(config.aiHubUrl, "http://127.0.0.1:3000");
   assert.equal(config.hostSecret, "");

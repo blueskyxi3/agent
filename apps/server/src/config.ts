@@ -33,7 +33,7 @@ export function loadConfig(env = process.env) {
   if (!Number.isInteger(requestTimeoutMs) || requestTimeoutMs < 5_000 || requestTimeoutMs > 300_000) throw new Error("AGENT_REQUEST_TIMEOUT_MS 必须在 5000 到 300000 之间");
   const dataDir = path.resolve(env.AGENT_DATA_DIR ?? path.join(agentRoot, "data"));
   return {
-    pluginVersion: env.AGENT_PLUGIN_VERSION ?? "1.0.0",
+    pluginVersion: env.AGENT_PLUGIN_VERSION ?? "1.1.1",
     host: env.AGENT_HOST ?? "0.0.0.0",
     port,
     aiHubUrl: (env.AIHUB_INTERNAL_URL ?? "http://127.0.0.1:3000").replace(/\/$/, ""),

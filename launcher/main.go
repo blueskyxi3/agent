@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"crypto/sha256"
 	"errors"
 	"flag"
 	"fmt"
@@ -17,7 +18,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var version = "1.0.0"
+var version = "1.1.1"
 
 type settings struct {
 	Plugin struct {
@@ -68,7 +69,21 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	runtimeRoot := filepath.Join(filepath.Dir(*configPath), "runtime", version)
+	binary, err := os.Open(executable)
+	if err != nil {
+		return err
+	}
+	digest := sha256.New()
+	_, err = io.Copy(digest, binary)
+	closeErr := binary.Close()
+	if err != nil {
+		return err
+	}
+	if closeErr != nil {
+		return closeErr
+	}
+	// A replaced package can keep its version while containing a newer runtime.
+	runtimeRoot := filepath.Join(filepath.Dir(*configPath), "runtime", version, fmt.Sprintf("%x", digest.Sum(nil)))
 	if err = unpackRuntime(executable, runtimeRoot); err != nil {
 		return err
 	}

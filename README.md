@@ -14,8 +14,8 @@ npm run typecheck
 npm run build
 npm test
 go test ./...
-make package VERSION=1.0.0
-AGENT_TEST_PACKAGE="$PWD/dist/agent-1.0.0-$(go env GOOS)-$(go env GOARCH).zip" make test-package
+make package VERSION=1.1.1
+AGENT_TEST_PACKAGE="$PWD/dist/agent-1.1.1-$(go env GOOS)-$(go env GOARCH).zip" make test-package
 ```
 
 目录包括 `apps/server`、`apps/web`、`packages/contracts`、`launcher` 和 `scripts`；`go.mod` 仅供本项目启动器使用。打包产物用于 GitHub Release，安装时按下文登记 GitHub 下载地址。
@@ -27,7 +27,7 @@ SDK v2 市场插件。前端使用 assistant-ui，后端使用 Pi SDK；宿主�
 `process` 由 plugin-deployer 托管，master 默认使用内嵌部署器，不需要另外执行 `npm start`。插件的 `site.global.layer` 扩展点提供全站悬浮入口和面板；个人设置中的“开启智能助手”只控制当前用户是否使用入口，不能代替插件安装与启用。
 
 1. 先运行支持 SDK v2 全站扩展点的新版 AI Hub，并确认节点是 `master`，部署器的 process 能力已开启。
-2. 从 [Agent Releases](https://github.com/blueskyxi3/agent/releases) 选择已发布的 `<版本>`（如 `1.0.0`），取得附件 `catalog.json`。安装包由 master 通过 GitHub 下载，再交给部署器；按**部署器**的操作系统和架构选择产物，安装时无需本地 ZIP、Node.js、npm 或 Go。
+2. 从 [Agent Releases](https://github.com/blueskyxi3/agent/releases) 选择已发布的 `<版本>`（如 `1.1.1`），取得附件 `catalog.json`。安装包由 master 通过 GitHub 下载，再交给部署器；按**部署器**的操作系统和架构选择产物，安装时无需本地 ZIP、Node.js、npm 或 Go。
 3. 用 root 账号进入“系统设置 → 扩展管理 → 注册目录项”，粘贴该 Release 的 `catalog.json`；已有目录项应显式更新。`manifest.version` 必须与 Release 包内版本一致，扁平 `artifacts` 中只保留 GitHub HTTPS 下载地址。本仓库为公有仓库，Release 的 `catalog.json` 和 process ZIP 均使用公开 HTTPS 下载地址，无需配置 GitHub 下载令牌。
 4. 进入“插件市场 → 智能助手”，选择安装或试用，模式选 `process`，数据库选默认的**独立 SQLite**，然后提交。安装会校验包和清单、生成内部通信密钥并启动 Agent；无需设置 `AGENT_HOST_SECRET`。
 5. 插件市场中的状态应为 `active`。在“系统设置 → 智能助手配置”确认悬浮启动器已开启，再在个人设置中开启智能助手并选好 API Key、文本模型。刷新页面后，右下角应出现悬浮入口，`/assistant` 页面也应可用。停用插件后入口应消失。
@@ -43,18 +43,18 @@ SDK v2 市场插件。前端使用 assistant-ui，后端使用 Pi SDK；宿主�
 维护者先推送与版本号一致的 Git 标签，再从该标签运行 [Agent Release 工作流](https://github.com/blueskyxi3/agent/actions/workflows/agent-release.yml)。工作流分别在 Linux amd64、Linux arm64、macOS arm64 原生 runner 上构建并验证自包含进程包，最后发布 ZIP 和 `catalog.json`。例如：
 
 ```bash
-git tag -a 1.0.0 -m "Agent 1.0.0"
-git push origin 1.0.0
-gh workflow run agent-release.yml --repo blueskyxi3/agent --ref 1.0.0 -f version=1.0.0
+git tag -a 1.1.1 -m "Agent 1.1.1"
+git push origin 1.1.1
+gh workflow run agent-release.yml --repo blueskyxi3/agent --ref 1.1.1 -f version=1.1.1
 ```
 
-版本 `1.0.0` 的[插件目录 JSON](https://github.com/blueskyxi3/agent/releases/download/1.0.0/catalog.json)和安装包均可直接下载：
+版本 `1.1.1` 的[插件目录 JSON](https://github.com/blueskyxi3/agent/releases/download/1.1.1/catalog.json)和安装包均可直接下载：
 
 | 部署器平台 | GitHub 安装包 |
 | --- | --- |
-| Linux amd64 | [agent-1.0.0-linux-amd64.zip](https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-linux-amd64.zip) |
-| Linux arm64 | [agent-1.0.0-linux-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-linux-arm64.zip) |
-| macOS arm64 | [agent-1.0.0-darwin-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-darwin-arm64.zip) |
+| Linux amd64 | [agent-1.1.1-linux-amd64.zip](https://github.com/blueskyxi3/agent/releases/download/1.1.1/agent-1.1.1-linux-amd64.zip) |
+| Linux arm64 | [agent-1.1.1-linux-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/1.1.1/agent-1.1.1-linux-arm64.zip) |
+| macOS arm64 | [agent-1.1.1-darwin-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/1.1.1/agent-1.1.1-darwin-arm64.zip) |
 
 master 会直接从 GitHub 下载 ZIP。下载或安装包校验失败会报错，不会改取本地文件。
 
@@ -62,7 +62,7 @@ master 会直接从 GitHub 下载 ZIP。下载或安装包校验失败会报错�
 
 1. 更新 AI Hub 宿主并重启。新版宿主的 embedded 部署器在未设置 `plugin_deployer.backend` 时自动检测本机 Docker Engine，包括 Docker Desktop 的 Unix socket；显式 `backend: ""` 会关闭自动检测。也可在宿主配置 `plugin_deployer.backend: docker`，通过 `plugin_deployer.docker.host` 指定 socket，然后重启宿主。
 2. 在“系统设置 → 扩展管理”更新已有 Agent 目录项，使用本仓库 `catalog.example.json` 或 Release 的 `catalog.json`，确认 `modes` 包含 `docker`。目录不会随源码或 Release 附件自动更新。
-3. 在“插件市场 → 智能助手”选择 `docker`，填写支持 Docker Engine 架构的 Agent 镜像、端口 `3100`、健康路径 `/api/v1/health`，数据库选择**独立 SQLite**。POC 已发布的 `ai-hub-agent:1.0.0` 镜像为 `linux/amd64`；Apple Silicon 的 Docker Engine 为 `linux/arm64`，应使用相应架构的镜像。
+3. 在“插件市场 → 智能助手”选择 `docker`，填写支持 Docker Engine 架构的 Agent 镜像、端口 `3100`、健康路径 `/api/v1/health`，数据库选择**独立 SQLite**。`ai-hub-agent:1.1.1` 镜像同时提供 `linux/amd64` 和 `linux/arm64`，可用于 x86 服务器和 Apple Silicon Docker Engine。
 4. 宿主回调地址填写容器可访问的 AI Hub origin：Docker Desktop 本机开发通常为 `http://host.docker.internal:3000`；宿主与插件同属 Docker 网络时使用宿主容器的服务名。确认后由部署器拉取镜像、生成配对密钥并创建容器和数据卷，状态应变为 `active`。
 
 Docker 模式不下载 process ZIP，使用 `/data/plugin` 数据卷保存独立 SQLite。停用或卸载通过插件市场执行，卸载保留数据卷。Kubernetes 选项仍需要部署器显式启用 Kubernetes 后端并具备集群访问权限。
@@ -99,7 +99,7 @@ Docker 模式不下载 process ZIP，使用 `/data/plugin` 数据卷保存独立
        image_pull_secrets: []
    ```
 
-3. 在“插件市场 → 智能助手”安装或试用，模式选择 `kubernetes`，填写 POC 镜像 `ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0`、端口 `3100`、健康路径 `/api/v1/health`。宿主回调地址填写插件 Pod 能访问的 master Service origin，例如 `http://ai-hub-web.compute-power-zone.svc:3000`，按实际命名空间和 Service 名称替换；数据库选择**独立 SQLite**。镜像内 `/internal/manifest` 的版本须与目录的 `manifest.version` 一致。
+3. 在“插件市场 → 智能助手”安装或试用，模式选择 `kubernetes`，填写 POC 镜像 `ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.1.1`、端口 `3100`、健康路径 `/api/v1/health`。宿主回调地址填写插件 Pod 能访问的 master Service origin，例如 `http://ai-hub-web.compute-power-zone.svc:3000`，按实际命名空间和 Service 名称替换；数据库选择**独立 SQLite**。镜像内 `/internal/manifest` 的版本须与目录的 `manifest.version` 一致。
 4. 提交后由部署器创建单副本、Recreate 策略的 Deployment、ClusterIP Service、配置 Secret 和独立 PVC；配对密钥自动生成，SQLite 位于 `/data/plugin/agent.sqlite`。master 需能访问插件 Service DNS。等待市场状态变为 `active` 后，按 process 模式第 5 步开启用户入口。
 
 Kubernetes 模式直接拉取镜像，不下载 process ZIP。插件停用和卸载由市场管理，卸载保留 PVC 数据。`k8s/deployment.yaml` 和 Helm 中预部署的 Agent 服务属于 `external` 接入方式，使用市场托管的 Kubernetes 模式时不必重复部署。独立部署器的配置见[AI Hub 插件部署器文档](https://github.com/blueskyxi3/ai-hub/blob/main/docs/deployment/plugin-marketplace.md)。
@@ -125,7 +125,7 @@ AIHUB_INTERNAL_URL=http://127.0.0.1:3000 npm run start -w @ai-hub-agent/server
 
 录音支持停止/取消、120 秒上限、WAV 转换、麦克风音量和草稿冲突保护。浏览器需要 HTTPS 或 localhost。完整时序与验证说明见[AI Hub ASR 集成文档](https://github.com/blueskyxi3/ai-hub/blob/main/.req/agent/asr-integration.md)。
 
-连续语音对话要求 ASR 0.2.0 模块、包含 `assistant.voice.control` 扩展点的主进程，以及新版 Agent 前端（本次本机 process 包为 1.1.0）。管理员先在“系统设置 → 应用设置 → 模块化设置 → 语音唤醒与退出”开启总开关，再由用户点击输入栏中的“开启语音对话”。本地检测唤醒词后，停顿默认 1.2 秒会自动转写、发送并回复；回复及播报期间暂停听写，结束后继续。“退下吧”等口令只退出对话并回到待唤醒，不提交给 Agent。已有手输草稿、附件或识别期间编辑草稿时，保留转写供明确插入。页面隐藏后释放麦克风，再次可见时需要主动开启。
+连续语音对话要求 ASR 0.2.0 模块、包含 `assistant.voice.control` 扩展点的主进程，以及新版 Agent 前端（1.1.1 已包含）。管理员先在“系统设置 → 应用设置 → 模块化设置 → 语音唤醒与退出”开启总开关，再由用户点击输入栏中的“开启语音对话”。本地检测唤醒词后，停顿默认 1.2 秒会自动转写、发送并回复；回复及播报期间暂停听写，结束后继续。“退下吧”等口令只退出对话并回到待唤醒，不提交给 Agent。已有手输草稿、附件或识别期间编辑草稿时，保留转写供明确插入。页面隐藏后释放麦克风，再次可见时需要主动开启。
 
 总开关默认关闭；待唤醒音频仅在浏览器处理。KWS/WASM 资源由独立 ASR 经 Go 插件代理提供，Agent 不内置模型。`ASR_API_KEY` 用于转写渠道，`ASR_HOST_SECRET` 用于 ASR 模块配对，二者与 Agent 配对密钥分别配置。主进程 `config.yaml` 不需要 `ASR_API_KEY`。
 
@@ -174,9 +174,11 @@ AI Hub 的路由、参数或中间件变更后，在 AI Hub 仓库根目录运�
 `external` 镜像在本仓库根目录构建，镜像运行时需设置 `AGENT_HOST_SECRET`，对外只暴露 AI Hub；Agent 的 3100 端口留在内网。先更新宿主，再部署镜像并在市场登记同一个配对密钥。
 
 ```bash
-docker build --platform linux/amd64 -f Dockerfile \
-  -t ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0 .
-docker push ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0
+docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile \
+  --build-arg VERSION=1.1.1 \
+  -t blueskyxi3/ai-hub-agent:1.1.1 \
+  -t ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.1.1 \
+  --push .
 ```
 
 ### POC 现有 Deployment 升级（external 模式）
@@ -192,7 +194,7 @@ kubectl -n compute-power-zone set env deployment/ai-hub-agent \
 kubectl -n compute-power-zone patch deployment ai-hub-agent --type merge \
   -p '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
 kubectl -n compute-power-zone set image deployment/ai-hub-agent \
-  agent=ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0
+  agent=ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.1.1
 kubectl -n compute-power-zone scale deployment/ai-hub-agent --replicas=1
 kubectl -n compute-power-zone rollout status deployment/ai-hub-agent --timeout=180s
 ```
@@ -221,7 +223,7 @@ go test ./...
 curl http://127.0.0.1:3100/api/v1/health
 
 # 原生 process 包生命周期测试（需允许本地监听）
-AGENT_TEST_PACKAGE="$PWD/dist/agent-1.0.0-$(go env GOOS)-$(go env GOARCH).zip" make test-package
+AGENT_TEST_PACKAGE="$PWD/dist/agent-1.1.1-$(go env GOOS)-$(go env GOARCH).zip" make test-package
 ```
 
 AI Hub 宿主侧的可选集成测试在 **AI Hub 仓库**执行，并通过 `AI_HUB_AGENT_SOURCE` 指定本仓库的绝对路径：

@@ -32,6 +32,8 @@ SDK v2 市场插件。前端使用 assistant-ui，后端使用 Pi SDK；宿主�
 4. 进入“插件市场 → 智能助手”，选择安装或试用，模式选 `process`，数据库选默认的**独立 SQLite**，然后提交。安装会校验包和清单、生成内部通信密钥并启动 Agent；无需设置 `AGENT_HOST_SECRET`。
 5. 插件市场中的状态应为 `active`。在“系统设置 → 智能助手配置”确认悬浮启动器已开启，再在个人设置中开启智能助手并选好 API Key、文本模型。刷新页面后，右下角应出现悬浮入口，`/assistant` 页面也应可用。停用插件后入口应消失。
 
+插件市场图片保存在本仓库的 `plugin-logos/agent.png` 和 `plugin-backgrounds/agent.png`，`catalog.example.json` 使用对应的公开 HTTPS 图片地址。AI Hub 主进程下载并缓存远端图片；也可将目录中的 `logo`、`background` 改为 `/plugin-logos/agent.png`、`/plugin-backgrounds/agent.png`，使用宿主自带的本地图片。已有目录项需要显式更新后生效。
+
 如果插件已是 `active`，但浏览器加载 `/api/plugin-bridge/agent/assets/plugin.js` 报 `ERR_CONTENT_DECODING_FAILED`，需重新编译并重启新版 AI Hub 主程序。宿主的插件桥接路径必须绕开通用 API gzip 中间件，否则插件资源会被重复压缩。
 
 如果已有旧版会话，先停止旧 Agent，再按下文迁移数据，之后安装插件；不要让两个服务同时写入会话库。

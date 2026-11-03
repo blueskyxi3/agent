@@ -9,7 +9,8 @@
     "backend": "agent"
   },
   "description": "全站智能助手，使用当前用户的模型选择和权限。",
-  "logo": "/plugin-logos/default.svg",
+  "logo": "https://raw.githubusercontent.com/blueskyxi3/agent/main/plugin-logos/agent.png",
+  "background": "https://raw.githubusercontent.com/blueskyxi3/agent/main/plugin-backgrounds/agent.png",
   "modes": ["process", "external", "kubernetes"],
   "artifacts": {
     "darwin-arm64": "https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-darwin-arm64.zip",

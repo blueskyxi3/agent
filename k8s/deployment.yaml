@@ -23,6 +23,8 @@ metadata:
 spec:
   # Agent 使用本地 SQLite 保存会话；未改为共享存储前必须保持单副本。
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: ai-hub-agent
@@ -33,7 +35,7 @@ spec:
     spec:
       containers:
         - name: agent
-          image: ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:0.1.0
+          image: ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -41,7 +43,7 @@ spec:
           env:
             - name: AIHUB_INTERNAL_URL
               # 改为 master Service 在当前 namespace 中的实际 DNS 名称及端口。
-              value: http://ai-hub:3000
+              value: http://ai-hub-web:3000
             - name: AGENT_HOST_SECRET
               value: "your-plugin-pairing-secret-with-32-characters" # 必须与插件登记的配对密钥一致。
           volumeMounts:

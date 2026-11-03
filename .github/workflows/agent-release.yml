@@ -35,6 +35,8 @@ jobs:
           import os, re
           if not re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", os.environ["VERSION"]):
               raise SystemExit("version must be a release version such as 1.0.0")
+          if os.environ["GITHUB_REF_NAME"] != os.environ["VERSION"]:
+              raise SystemExit("run this workflow from the matching version tag")
           PY
       - uses: actions/setup-node@v4
         with:
@@ -73,25 +75,22 @@ jobs:
           pattern: agent-*
           path: dist
           merge-multiple: true
-      - name: Publish packages and GitHub API catalog
+      - name: Publish packages and public catalog
         run: |
-          tag="agent-v$VERSION"
-          gh release create "$tag" dist/agent-*.zip --draft --target "$GITHUB_SHA" \
+          tag="$VERSION"
+          gh release create "$tag" dist/agent-*.zip --draft --verify-tag \
             --title "Agent $VERSION" --notes "SDK v2 Agent process packages and marketplace catalog."
-          release_id=$(gh release view "$tag" --json databaseId --jq .databaseId)
-          gh api "repos/$GH_REPO/releases/$release_id" > "$RUNNER_TEMP/agent-release.json"
           python3 - <<'PY'
           import json, os, pathlib
           version = os.environ["VERSION"]
-          release = json.loads((pathlib.Path(os.environ["RUNNER_TEMP"]) / "agent-release.json").read_text())
-          assets = {asset["name"]: asset["url"] for asset in release["assets"]}
+          repository = os.environ["GH_REPO"]
           catalog = json.loads(pathlib.Path("catalog.example.json").read_text())
           catalog["manifest"]["version"] = version
           catalog["artifacts"] = {
-              platform: assets[f"agent-{version}-{platform}.zip"]
+              platform: f"https://github.com/{repository}/releases/download/{version}/agent-{version}-{platform}.zip"
               for platform in catalog["artifacts"]
           }
           pathlib.Path("dist/catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n")
           PY
           gh release upload "$tag" dist/catalog.json
-          gh release edit "$tag" --draft=false --latest=false
+          gh release edit "$tag" --draft=false --latest

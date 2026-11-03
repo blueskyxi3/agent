@@ -27,8 +27,8 @@ SDK v2 市场插件。前端使用 assistant-ui，后端使用 Pi SDK；宿主�
 `process` 由 plugin-deployer 托管，master 默认使用内嵌部署器，不需要另外执行 `npm start`。插件的 `site.global.layer` 扩展点提供全站悬浮入口和面板；个人设置中的“开启智能助手”只控制当前用户是否使用入口，不能代替插件安装与启用。
 
 1. 先运行支持 SDK v2 全站扩展点的新版 AI Hub，并确认节点是 `master`，部署器的 process 能力已开启。
-2. 从 [Agent Releases](https://github.com/blueskyxi3/agent/releases) 选择已发布的 `agent-v<版本>`，取得附件 `catalog.json`。安装包由 master 通过 GitHub 下载，再交给部署器；按**部署器**的操作系统和架构选择产物，安装时无需本地 ZIP、Node.js、npm 或 Go。
-3. 用 root 账号进入“系统设置 → 扩展管理 → 注册目录项”，粘贴该 Release 的 `catalog.json`；已有目录项应显式更新。`manifest.version` 必须与 Release 包内版本一致，扁平 `artifacts` 中只保留 GitHub HTTPS 下载地址。`catalog.example.json` 提供公开 Release 链接示例；当前仓库为私有仓库，应使用发布流程生成的 `catalog.json`，其地址为带真实资产 ID 的 GitHub API 链接，并按下文配置下载认证。
+2. 从 [Agent Releases](https://github.com/blueskyxi3/agent/releases) 选择已发布的 `<版本>`（如 `1.0.0`），取得附件 `catalog.json`。安装包由 master 通过 GitHub 下载，再交给部署器；按**部署器**的操作系统和架构选择产物，安装时无需本地 ZIP、Node.js、npm 或 Go。
+3. 用 root 账号进入“系统设置 → 扩展管理 → 注册目录项”，粘贴该 Release 的 `catalog.json`；已有目录项应显式更新。`manifest.version` 必须与 Release 包内版本一致，扁平 `artifacts` 中只保留 GitHub HTTPS 下载地址。本仓库为公有仓库，Release 的 `catalog.json` 和 process ZIP 均使用公开 HTTPS 下载地址，无需配置 GitHub 下载令牌。
 4. 进入“插件市场 → 智能助手”，选择安装或试用，模式选 `process`，数据库选默认的**独立 SQLite**，然后提交。安装会校验包和清单、生成内部通信密钥并启动 Agent；无需设置 `AGENT_HOST_SECRET`。
 5. 插件市场中的状态应为 `active`。在“系统设置 → 智能助手配置”确认悬浮启动器已开启，再在个人设置中开启智能助手并选好 API Key、文本模型。刷新页面后，右下角应出现悬浮入口，`/assistant` 页面也应可用。停用插件后入口应消失。
 
@@ -38,28 +38,23 @@ SDK v2 市场插件。前端使用 assistant-ui，后端使用 Pi SDK；宿主�
 
 ### GitHub 安装包与发布
 
-首次使用前，维护者需将本次改动推送到 GitHub，在 [Agent Release 工作流](https://github.com/blueskyxi3/agent/actions/workflows/agent-release.yml) 手动运行并填写版本（例如 `1.0.0`）。工作流分别在 Linux amd64、Linux arm64、macOS arm64 原生 runner 上构建并验证自包含进程包，最后发布 ZIP 和 `catalog.json`。Release 使用 `agent-v<版本>` 标签，不会影响 AI Hub 仓库的 Release。尚未运行工作流时，示例中的下载链接不会有对应资产。
+维护者先推送与版本号一致的 Git 标签，再从该标签运行 [Agent Release 工作流](https://github.com/blueskyxi3/agent/actions/workflows/agent-release.yml)。工作流分别在 Linux amd64、Linux arm64、macOS arm64 原生 runner 上构建并验证自包含进程包，最后发布 ZIP 和 `catalog.json`。例如：
 
-以 `1.0.0` 为例，公开仓库的下载链接如下；私有仓库请使用 Release 附件 `catalog.json` 中的资产 API 地址：
+```bash
+git tag -a 1.0.0 -m "Agent 1.0.0"
+git push origin 1.0.0
+gh workflow run agent-release.yml --repo blueskyxi3/agent --ref 1.0.0 -f version=1.0.0
+```
+
+版本 `1.0.0` 的[插件目录 JSON](https://github.com/blueskyxi3/agent/releases/download/1.0.0/catalog.json)和安装包均可直接下载：
 
 | 部署器平台 | GitHub 安装包 |
 | --- | --- |
-| Linux amd64 | [agent-1.0.0-linux-amd64.zip](https://github.com/blueskyxi3/agent/releases/download/agent-v1.0.0/agent-1.0.0-linux-amd64.zip) |
-| Linux arm64 | [agent-1.0.0-linux-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/agent-v1.0.0/agent-1.0.0-linux-arm64.zip) |
-| macOS arm64 | [agent-1.0.0-darwin-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/agent-v1.0.0/agent-1.0.0-darwin-arm64.zip) |
+| Linux amd64 | [agent-1.0.0-linux-amd64.zip](https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-linux-amd64.zip) |
+| Linux arm64 | [agent-1.0.0-linux-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-linux-arm64.zip) |
+| macOS arm64 | [agent-1.0.0-darwin-arm64.zip](https://github.com/blueskyxi3/agent/releases/download/1.0.0/agent-1.0.0-darwin-arm64.zip) |
 
-私有仓库需要在 **master** 配置 GitHub 下载认证；`AI_HUB_GITHUB_RELEASE_TOKEN` 是具备该仓库 Contents 读取权限的令牌环境变量，令牌不写入目录 JSON：
-
-```yaml
-extensions:
-  downloads:
-    auth:
-      - host: api.github.com
-        type: bearer
-        token_env: AI_HUB_GITHUB_RELEASE_TOKEN
-```
-
-下载器已设置 `Accept: application/octet-stream`，并在跨域重定向时移除认证头。GitHub 下载或安装包校验失败会直接报错，不会改取本地文件。
+master 会直接从 GitHub 下载 ZIP。下载或安装包校验失败会报错，不会改取本地文件。
 
 ## Kubernetes 模式安装
 
@@ -93,7 +88,7 @@ extensions:
        image_pull_secrets: []
    ```
 
-3. 在“插件市场 → 智能助手”安装或试用，模式选择 `kubernetes`，填写已发布的 SDK v2 Agent 镜像（如按下文构建并推送的 `blueskyxi3/ai-hub-agent:0.1.13`）、端口 `3100`、健康路径 `/api/v1/health`。宿主回调地址填写插件 Pod 能访问的 master Service origin，例如 `http://ai-hub-web.compute-power-zone.svc:3000`，按实际命名空间和 Service 名称替换；数据库选择**独立 SQLite**。镜像内 `/internal/manifest` 的版本须与目录的 `manifest.version` 一致。
+3. 在“插件市场 → 智能助手”安装或试用，模式选择 `kubernetes`，填写 POC 镜像 `ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0`、端口 `3100`、健康路径 `/api/v1/health`。宿主回调地址填写插件 Pod 能访问的 master Service origin，例如 `http://ai-hub-web.compute-power-zone.svc:3000`，按实际命名空间和 Service 名称替换；数据库选择**独立 SQLite**。镜像内 `/internal/manifest` 的版本须与目录的 `manifest.version` 一致。
 4. 提交后由部署器创建单副本、Recreate 策略的 Deployment、ClusterIP Service、配置 Secret 和独立 PVC；配对密钥自动生成，SQLite 位于 `/data/plugin/agent.sqlite`。master 需能访问插件 Service DNS。等待市场状态变为 `active` 后，按 process 模式第 5 步开启用户入口。
 
 Kubernetes 模式直接拉取镜像，不下载 process ZIP。插件停用和卸载由市场管理，卸载保留 PVC 数据。`k8s/deployment.yaml` 和 Helm 中预部署的 Agent 服务属于 `external` 接入方式，使用市场托管的 Kubernetes 模式时不必重复部署。独立部署器的配置见[AI Hub 插件部署器文档](https://github.com/blueskyxi3/ai-hub/blob/main/docs/deployment/plugin-marketplace.md)。
@@ -168,16 +163,27 @@ AI Hub 的路由、参数或中间件变更后，在 AI Hub 仓库根目录运�
 `external` 镜像在本仓库根目录构建，镜像运行时需设置 `AGENT_HOST_SECRET`，对外只暴露 AI Hub；Agent 的 3100 端口留在内网。先更新宿主，再部署镜像并在市场登记同一个配对密钥。
 
 ```bash
-docker build --platform linux/amd64 -f Dockerfile -t blueskyxi3/ai-hub-agent:0.1.13 .
-docker run --rm -p 3100:3100 \
-  -e AIHUB_INTERNAL_URL=http://host.docker.internal:3000 \
-  -e AGENT_HOST_SECRET=replace-with-the-plugin-registration-secret \
-  -v ai-hub-agent-data:/data/agent \
-  blueskyxi3/ai-hub-agent:0.1.13
-
-  docker tag blueskyxi3/ai-hub-agent:0.1.13 ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:0.1.13
-  docker push ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:0.1.13
+docker build --platform linux/amd64 -f Dockerfile \
+  -t ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0 .
+docker push ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0
 ```
+
+### POC 现有 Deployment 升级（external 模式）
+
+POC 已有 `compute-power-zone/ai-hub-agent` Deployment，容器名为 `agent`，现有 Service 为 `ai-hub-agent-svc:3100`。当前副本数为 0；确认采用此 external 接入方式后，使用现有 PVC 和配对密钥升级并启动：
+
+```bash
+kubectl -n compute-power-zone patch deployment ai-hub-agent --type merge \
+  -p '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
+kubectl -n compute-power-zone set image deployment/ai-hub-agent \
+  agent=ctt-repository-cn-guangzhou.cr.volces.com/compute-power-zone/ai-hub-agent:1.0.0
+kubectl -n compute-power-zone scale deployment/ai-hub-agent --replicas=1
+kubectl -n compute-power-zone rollout status deployment/ai-hub-agent --timeout=180s
+```
+
+在 AI Hub 更新 Release 附件 `catalog.json` 对应的目录项，以 `external` 模式接入 `http://ai-hub-agent-svc.compute-power-zone.svc:3100`，配对密钥沿用该 Deployment 的 `AGENT_HOST_SECRET`。数据库和数据卷保持原配置。`Recreate` 可避免 SQLite 在升级期间由新旧两个 Pod 同时写入。
+
+若使用市场托管的 `kubernetes` 模式，按上文安装步骤由 plugin-deployer 创建工作负载；现有手工 Deployment 使用上述 `external` 接入方式。选择其中一种部署方式管理同一个插件。
 
 `process` 包由上述 GitHub Release 工作流在目标平台执行 `npm ci` 和 `make VERSION=<版本>` 构建，产物为 `agent-<版本>-<GOOS>-<GOARCH>.zip`。Go 启动器自带 Node 运行时、生产依赖和前端资源；目录的 `artifacts` 使用 GitHub Release 资产地址，安装不读取本地构建目录。Agent 进程仅支持独立 SQLite 会话库，包需满足市场的 150 MiB 大小限制。
 
